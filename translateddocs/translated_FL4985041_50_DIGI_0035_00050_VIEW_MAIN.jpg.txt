@@ -1,0 +1,26 @@
+This is a computer vision reading of a WW1 poster in Belgium. Correct the irregularities that may be present and translate it to English. The translation should be a string and the only output of the prompt.
+
+'Mededeelingen van het
+Duitsche Generaal-
+Gouvernement.
+
+BERLIJN, 28 Juni. (Ambtelijk bericht
+van hedenmiddag.)
+
+Westelijk krijgsveld.
+
+Ten noorden van Atrecht sloegen wij vijandelijke nachtaanvallen af aan weerszijden der straat Souchez-Aix Noulette en bij het Doolhof, ten N. van Ecurie. Aan den westrand van het Argonnerwoud trachtten de Franschen gisteravond hun verloren stellingen te heroveren. Hun aanvallen mislukten echter volkomen, ondanks de ondersteuning eener talrijke artillerie. Een infanterieaanval aan weerszijden van de Tranchée, op de Maasheuvelen, over een frontbreedte van 2 kilometer onderging hetzelfde lot. Met buitengewoon zware verliezen vluchtte de vijand terug naar zijn stellingen. In de Vogezen overvielen onze troepen de bezetting van een bergtop, vlak beoosten Metzeral. Zij maakten 50 gevangenen en bemachtigden 1 machiengeweer. Op het zuidelijke deel van ons front: behaalden wij merkwaardige voordeelen in den strijd met vijandelijke vliegeniers. In een luchtgevecht ten N. van den Schluchtpas en bij Gérardmer werden 2 vijandelijke vliegtuigen neergeschoten; ons geschutvuur dwong 2 andere vliegeniers bij Largitzen en Rheinfelden, op Zwitsersch grondgebied, te landen.
+
+Oostelijk krijgsveld.
+
+Russische aanvallen ten N. en ten N.-O. van Prasnysz, voornamelijk op onze nieuwe, sedert 25 Juni veroverde stellingen ten Z.-O. van Gielenda gericht, stortten onder ernstige verliezen voor den vijand ineen.
+
+Zuidoostelijk krijgsveld.
+
+Wij hebben Halicz bezet. Heden zijn wij over den Dniester getrokken. Het leger van von Linsingen is er thans in geslaagd, na verwoede gevechten die vijf dagen duurden, met het Oostenrijksche front dezen stroom te overschrijden. Meer naar het Noorden achtervolgen onze troepen den verslagen vijand in de richting van den Gnila-Lipa-sektor. Sedert 23 Juni maakte het leger van von Linsingen 6,470 gevangenen. Ten N.-O. van Lemberg naderen wij den Boeg-sektor. Meer naar het W., tot in de streek van Cieszanow, zetten de verbonden legers hun opmarsch voort. Zij namen eenige duizenden Russen gevangen en maakten tal van kanonnen en machiengeweren buit.
+
+In het ambtelijk bericht van gisteren komt een vergissing voor; het moet zijn: Wij hebben de batterijen, die de vijand naast de citadel van Atrecht heeft opgesteld, onder vuur genomen. — De kathedraal werd niet beschoten.
+
+Net Generaal-Gouvernement IN België
+
+'
