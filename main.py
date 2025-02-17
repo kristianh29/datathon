@@ -1,4 +1,6 @@
+from preprocessing import parse_date, classify_war_front, front_colors
 import os
+
 import streamlit as st
 import folium
 from streamlit_folium import st_folium
@@ -17,23 +19,6 @@ assistant_ww1exp_id = "asst_z3kMZJUvk2KKaShwgG6pijSP"
 
 # Load and process the dataset
 df = pd.read_csv("battles_output.csv")
-
-def parse_date(date_str, year=1915):
-    month_map = {
-        'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
-        'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12,
-        'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
-        'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12
-    }
-    cleaned_str = date_str.replace('st', '').replace('nd', '').replace('rd', '').replace('th', '')
-    parts = cleaned_str.split()
-    if len(parts) == 2:
-        day, month = parts if parts[0].isdigit() else (parts[1], parts[0])
-        month = month_map.get(month, None)
-        if month and day.isdigit():
-            return dt.date(year=int(year), month=int(month), day=int(day))
-    return pd.NA
-
 df["Datetime"] = df.Date.apply(parse_date)
 df = df.dropna(subset=["Location", "Datetime", "Latitude", "Longitude"])
 
@@ -49,15 +34,22 @@ map = folium.Map(location=(52.52437, 13.41053), tiles="Cartodb Positron", zoom_s
 for _, row in df_selected.iterrows():
     location_name = row["Location"]
     popup_text = f'{row["Datetime"]}<br>{location_name}'
+    
+    front = classify_war_front(row["Latitude"], row["Longitude"])  # Determine front based on lat/lon
+    color = front_colors[front]  # Get corresponding color
     folium.Marker(
         location=[row["Latitude"], row["Longitude"]],
         tooltip="Click me!",
         popup=folium.Popup(popup_text, max_width=300),
-        icon=folium.Icon(icon="cloud")
+        icon=folium.Icon(color=color, icon="skull", prefix = "fa")
     ).add_to(map)
+
+
 
 # Display Folium map
 st_data = st_folium(map, width=725, key="my_map")
+
+
 
 # Initialize session state for prompt
 if "prompt" not in st.session_state:
