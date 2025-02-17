@@ -1,9 +1,19 @@
+import os
 import streamlit as st
 import folium
 from streamlit_folium import st_folium
 import pandas as pd
 import datetime as dt
-#import our LLM backend here 
+import openai
+from openai import OpenAI
+from dotenv import load_dotenv, dotenv_values
+#import our LLM backend here
+from assistants import chat_with_assistant
+load_dotenv()
+client = OpenAI(api_key=os.getenv("API_KEY"))
+
+assistant_prop_id = "asst_ufufmyqiucnAgWcq6nks0Jf8"
+assistant_ww1exp_id = "asst_z3kMZJUvk2KKaShwgG6pijSP"
 
 # Load and process the dataset
 df = pd.read_csv("battles_output.csv")
@@ -60,10 +70,21 @@ if st_data.get("last_clicked") != st.session_state["last_clicked"]:
     st.session_state["last_clicked"] = st_data.get("last_clicked")
     st.session_state["prompt"] = "Ask me a question about this battle"
 
+
 # Show text input box below the map
 if st.session_state["prompt"]:
     user_input = st.text_input("Enter your prompt:", placeholder=st.session_state["prompt"])
     if st.button("Submit"):
-        response = get_llm_response(user_input)  # Call the LLM backend function
+
+        # Create a thread for interaction
+        thread = client.beta.threads.create()
+        thread_id = thread.id  # Store the thread ID to reuse it
+        assistant_id = assistant_prop_id
+
+        # Call the assistant with the current message and the stored thread ID
+        response = chat_with_assistant(user_input, assistant_id, thread_id)
+        print(f"Assistant: {response}")
+        
+        
         st.write(f"You asked: {user_input}")
         st.write(f"LLM response: {response}")
