@@ -63,20 +63,30 @@ if st_data.get("last_clicked") != st.session_state["last_clicked"]:
     st.session_state["prompt"] = "Ask me a question about this battle"
 
 
+# Assistant selection
+assistant_choice = st.radio(
+    "Choose an assistant:",
+    ("Factual assistant", "Propaganda assistant"),
+    index=1  # Default to "Propaganda assistant" 
+)
+
+# Select assistant
+if assistant_choice == "Factual assistant":
+    assistant_id = assistant_ww1exp_id
+else:
+    assistant_id = assistant_prop_id
+
 # Show text input box below the map
 if st.session_state["prompt"]:
     user_input = st.text_input("Enter your prompt:", placeholder=st.session_state["prompt"])
+    
     if st.button("Submit"):
-
         # Create a thread for interaction
         thread = client.beta.threads.create()
         thread_id = thread.id  # Store the thread ID to reuse it
-        assistant_id = assistant_prop_id
 
-        # Call the assistant with the current message and the stored thread ID
+        # Call the assistant with the selected assistant ID
         response = chat_with_assistant(user_input, assistant_id, thread_id)
-        print(f"Assistant: {response}")
-        
         
         st.write(f"You asked: {user_input}")
-        st.write(f"LLM response: {response}")
+        st.write(f"Assistant response: {response}")

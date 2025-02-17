@@ -2,6 +2,7 @@ import openai
 import os
 from openai import OpenAI
 from dotenv import load_dotenv, dotenv_values 
+import time
 # loading variables from .env file
 load_dotenv() 
 
@@ -28,7 +29,6 @@ def chat_with_assistant(user_message, assistant_id, thread_id):
     )
 
     # Wait for the response
-    import time
     while run.status not in ["completed", "failed"]:
         time.sleep(1)
         run = client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run.id)
