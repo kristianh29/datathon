@@ -62,31 +62,23 @@ if st_data.get("last_clicked") != st.session_state["last_clicked"]:
     st.session_state["last_clicked"] = st_data.get("last_clicked")
     st.session_state["prompt"] = "Ask me a question about this battle"
 
+#Text input is always visible now
+with st.form(key="chat_form"):
+    user_input = st.text_input("Enter your prompt:", placeholder="Ask me a question about World War I")
+    submit_button = st.form_submit_button("Submit")  # Keeps the button visible
 
-# Assistant selection
-assistant_choice = st.radio(
-    "Choose an assistant:",
-    ("Factual assistant", "Propaganda assistant"),
-    index=1  # Default to "Propaganda assistant" 
-)
+if submit_button and user_input.strip():
+    # Create a thread for interaction
+    thread = client.beta.threads.create()
+    thread_id = thread.id  # Store the thread ID to reuse it
 
-# Select assistant
-if assistant_choice == "Factual assistant":
-    assistant_id = assistant_ww1exp_id
-else:
-    assistant_id = assistant_prop_id
+    #Get response from the propaganda assistant
+    response_prop = chat_with_assistant(user_input, assistant_prop_id, thread_id)
 
-# Show text input box below the map
-if st.session_state["prompt"]:
-    user_input = st.text_input("Enter your prompt:", placeholder=st.session_state["prompt"])
-    
-    if st.button("Submit"):
-        # Create a thread for interaction
-        thread = client.beta.threads.create()
-        thread_id = thread.id  # Store the thread ID to reuse it
+    #Get response from the factual assistant
+    response_factual = chat_with_assistant(user_input, assistant_ww1exp_id, thread_id)
 
-        # Call the assistant with the selected assistant ID
-        response = chat_with_assistant(user_input, assistant_id, thread_id)
-        
-        st.write(f"You asked: {user_input}")
-        st.write(f"Assistant response: {response}")
+    #Display responses
+    st.write(f"**You asked:** {user_input}")
+    st.write(f"🟥 **Propaganda Assistant:** {response_prop}")
+    st.write(f"🟦 **Factual Assistant:** {response_factual}")
