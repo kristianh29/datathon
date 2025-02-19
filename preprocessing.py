@@ -45,3 +45,8 @@ front_colors = {
     "Unknown Front": "gray"
 }
 
+import re
+
+def clean_response(text):
+    """Remove or replace citation placeholders in the assistant response."""
+    return re.sub(r"【\d+:\d+†source】", "", text)  # Remove placeholders
