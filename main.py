@@ -1,70 +1,104 @@
+from preprocessing import parse_date, classify_war_front, front_colors, clean_response
+import os
+import re
 import streamlit as st
 import folium
 from streamlit_folium import st_folium
 import pandas as pd
 import datetime as dt
+import openai
+from openai import OpenAI
+from dotenv import load_dotenv
 
-# Function to parse unstructured dates and standardize them
-# Dictionary to map month names to numbers
-month_map = {
-    'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
-    'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12,
-    'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
-    'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12
-}
+# Import LLM backend
+from assistants import chat_with_assistant
+load_dotenv()
 
-# Function to parse unstructured dates and standardize them
-def parse_date(date_str, year=1915):  # Assuming year 1915
-    cleaned_str = date_str.replace('st', '').replace('nd', '').replace('rd', '').replace('th', '')
-    parts = cleaned_str.split()
-    if len(parts) == 2:
-        if parts[0].isdigit():  # Check if first part is a day
-            day, month = parts
-        else:
-            month, day = parts
-        month = month_map.get(month, None)
-        if month and day.isdigit():
-            return dt.date(year=int(year), month=int(month), day=int(day))
-    return pd.NA
-df  = pd.read_csv("battles_output.csv")
+st.set_page_config(layout='wide')
+client = OpenAI(api_key=os.getenv("API_KEY"))
 
+assistant_prop_id = "asst_ufufmyqiucnAgWcq6nks0Jf8"
+assistant_ww1exp_id = "asst_z3kMZJUvk2KKaShwgG6pijSP"
+
+# Load and process the dataset
+df = pd.read_csv("battles_output_final.csv", encoding='unicode_escape')
 df["Datetime"] = df.Date.apply(parse_date)
-
-df = df.loc[~df.Location.isna() & ~df.Datetime.isna() & ~df.Latitude.isna() & ~df.Longitude.isna()]
-
-
-map = folium.Map(location=(52.52437, 13.41053), tiles = "Cartodb Positron",zoom_start=6)#location - the center of the map, zoom_start - the resolution
+df = df.dropna(subset=["Location", "Datetime", "Latitude", "Longitude"])
 
 
+# Streamlit App UI
 st.title("Evolution of World War I")
-
-start_date = st.date_input("Start Date", "1915-05-01")
-end_date = st.date_input("End Date", "1915-06-30")
-
-print(pd.Timestamp(start_date))
-
-df_selected = df.copy()
-
-print(f'dataframe {type(df_selected.Datetime)}, selector { type(end_date)}')
-df_selected = df_selected.loc[(df_selected.Datetime <= end_date) & (df_selected.Datetime >= start_date)]
+start_date = st.date_input("Start Date", dt.date(1915, 5, 1), format="DD/MM/YYYY")
+end_date = st.date_input("End Date", dt.date(1915, 6, 30), format = "DD/MM/YYYY")
+df_selected = df[(df.Datetime >= start_date) & (df.Datetime <= end_date)]
 
 
-for i in range(df_selected.shape[0]):
 
+
+# Folium Map
+map = folium.Map(location=(52.52437, 13.41053), tiles="Cartodb Positron", zoom_start=6, control_scale=False)
+
+for _, row in df_selected.iterrows():
+    location_name = row["Location"]
+    popup_text = f'{row["Datetime"]}<br>{location_name}'
+    
+    front = classify_war_front(row["Latitude"], row["Longitude"])  # Determine  front based on lat/lon
+    color = front_colors[front]  # Get corresponding color
     folium.Marker(
-        location=[df_selected.loc[df_selected.index[i], "Latitude"], df.loc[df.index[i], "Longitude"]],
+        location=[row["Latitude"], row["Longitude"]],
         tooltip="Click me!",
-        popup=f'{df_selected.loc[df_selected.index[i], "Datetime"]}\n {df_selected.loc[df_selected.index[i], "Location"]} ',
-        icon=folium.Icon(icon="cloud"),
+        popup=folium.Popup(popup_text, max_width=300),
+        icon=folium.Icon(color=color, icon="skull", prefix="fa")
     ).add_to(map)
+        
+     
 
-def callback():
-    st.toast(f"Current zoom: {st.session_state['my_map']['zoom']}")
-    st.toast(f"Current center: {st.session_state['my_map']['center']}")
+# Display Folium map
+st_data = st_folium(map, width=2000, height=500, key="my_map", returned_objects=[])
+st.write("🟥 Eastern Front 🟦 Western Front 🟩 Italian Front 🟪 Balkan Front")
+
+# Initialize session states
+if "user_input" not in st.session_state:
+    st.session_state["user_input"] = ""
+if "response_prop" not in st.session_state:
+    st.session_state["response_prop"] = ""
+if "response_factual" not in st.session_state:
+    st.session_state["response_factual"] = ""
+if "thread_id" not in st.session_state:
+    st.session_state["thread_id"] = None
 
 
+# Text input form
+with st.form(key="chat_form"):
+    user_input = st.text_input("Enter your prompt:", placeholder="Ask me a question about World War I")
+    submit_button = st.form_submit_button("Submit")
+    st.session_state["response_factual"] = None
 
-# call to render Folium map in Streamlit
-st_data = st_folium(map, width=725, key="my_map")
+if submit_button and user_input.strip():
+    st.session_state["user_input"] = user_input  # Store input
+    
+    # Create a thread for interaction (only create a new thread if it doesn't exist)
+    if not st.session_state["thread_id"]:
+        thread = client.beta.threads.create()
+        st.session_state["thread_id"] = thread.id  # Store thread ID to reuse it
 
+    # Get response from the propaganda assistant
+    st.session_state["response_prop"] = clean_response(chat_with_assistant(user_input, assistant_prop_id, st.session_state["thread_id"]))
 
+# Display stored responses
+if st.session_state["user_input"]:
+    st.write(f"**You asked:** {st.session_state['user_input']}")
+if st.session_state["response_prop"]:
+    st.write(f"🟨 **Propaganda Assistant:** {st.session_state['response_prop']}")
+
+    # Second form for factual response
+    with st.form(key="chat_form_2"):
+        response_button = st.form_submit_button("Click here for a factual response regarding the information above")
+
+    if response_button and st.session_state["response_prop"]:
+        prompt = f'User asked {st.session_state["user_input"]}, and the German-biased assistant answered {st.session_state["response_prop"]}. Use the system instructions to critique this output'
+        st.session_state["response_factual"] = clean_response(chat_with_assistant(prompt, assistant_ww1exp_id, st.session_state["thread_id"]))
+
+# Display factual assistant response
+if st.session_state["response_factual"]:
+    st.write(f"🟦 **Factual Assistant:** {st.session_state['response_factual']}")
