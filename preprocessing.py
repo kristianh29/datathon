@@ -19,7 +19,7 @@ def parse_date(date_str, year=1915):
 
 # Function to classify battles into war fronts
 def classify_war_front(lat, lon):
-    if 45 <= lat <= 51 and -5 <= lon <= 10:  # France, Belgium, Western Germany
+    if 45 <= lat <= 53 and -5 <= lon <= 10:  # France, Belgium, Western Germany
         return "Western Front"
     elif 47 <= lat <= 60 and 10 <= lon <= 35:  # Eastern Germany, Poland, Ukraine, Russia
         return "Eastern Front"
