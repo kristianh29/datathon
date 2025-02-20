@@ -25,11 +25,15 @@ df = pd.read_csv("battles_output_final.csv", encoding='unicode_escape')
 df["Datetime"] = df.Date.apply(parse_date)
 df = df.dropna(subset=["Location", "Datetime", "Latitude", "Longitude"])
 
+
 # Streamlit App UI
 st.title("Evolution of World War I")
-start_date = st.date_input("Start Date", dt.date(1915, 5, 1))
-end_date = st.date_input("End Date", dt.date(1915, 6, 30))
+start_date = st.date_input("Start Date", dt.date(1915, 5, 1), format="DD/MM/YYYY")
+end_date = st.date_input("End Date", dt.date(1915, 6, 30), format = "DD/MM/YYYY")
 df_selected = df[(df.Datetime >= start_date) & (df.Datetime <= end_date)]
+
+
+
 
 # Folium Map
 map = folium.Map(location=(52.52437, 13.41053), tiles="Cartodb Positron", zoom_start=6, control_scale=False)
@@ -46,9 +50,12 @@ for _, row in df_selected.iterrows():
         popup=folium.Popup(popup_text, max_width=300),
         icon=folium.Icon(color=color, icon="skull", prefix="fa")
     ).add_to(map)
+        
+     
 
 # Display Folium map
-st_data = st_folium(map, width=2000, height=500, key="my_map")
+st_data = st_folium(map, width=2000, height=500, key="my_map", returned_objects=[])
+st.write("🟥 Eastern Front 🟦 Western Front 🟩 Italian Front 🟪 Balkan Front")
 
 # Initialize session states
 if "user_input" not in st.session_state:
@@ -59,6 +66,7 @@ if "response_factual" not in st.session_state:
     st.session_state["response_factual"] = ""
 if "thread_id" not in st.session_state:
     st.session_state["thread_id"] = None
+
 
 # Text input form
 with st.form(key="chat_form"):
@@ -81,7 +89,7 @@ if submit_button and user_input.strip():
 if st.session_state["user_input"]:
     st.write(f"**You asked:** {st.session_state['user_input']}")
 if st.session_state["response_prop"]:
-    st.write(f"🟥 **Propaganda Assistant:** {st.session_state['response_prop']}")
+    st.write(f"🟨 **Propaganda Assistant:** {st.session_state['response_prop']}")
 
     # Second form for factual response
     with st.form(key="chat_form_2"):
